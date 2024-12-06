@@ -6,11 +6,13 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.Key;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 @Component
@@ -29,9 +31,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 Claims claims = Jwts.parserBuilder()
                         .setSigningKey(JwtUtil.getSecretKey())  // Use shared secret key
                         .build()
-                        .parseClaimsJws(token) // Handles URL-safe base64 by default
+                        .parseClaimsJws(token)
                         .getBody();
-                logger.info("Parsed claims: " + claims.toString());
+
+                logger.info("Parsed claims: " + claims);
+
+                String username = claims.getSubject(); // Extract username/alias
+                if (username != null) {
+                    // Create authentication and set it in the SecurityContext
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             } catch (Exception e) {
                 logger.severe("JWT Token validation failed: " + e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

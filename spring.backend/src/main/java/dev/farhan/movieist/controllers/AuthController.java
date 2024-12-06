@@ -28,9 +28,15 @@ public class AuthController {
         String email = request.get("email");
         String password = request.get("password");
         try {
-            String result = authService.loginUser(email, password);
-            String[] parts = result.split(",");
-            return new ResponseEntity<>(Map.of("token", parts[0], "userAlias", parts[1]), HttpStatus.OK);
+            // Get the result map that contains token and alias
+            Map<String, String> result = authService.loginUser(email, password);
+
+            // Extract token and alias from the result map
+            String token = result.get("token");
+            String alias = result.get("userAlias");
+
+            // Return the token and alias as a response
+            return new ResponseEntity<>(Map.of("token", token, "userAlias", alias), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.UNAUTHORIZED);
         }

@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -46,12 +47,16 @@ public class AuthService {
     }
 
     // Login an existing user
-    public String loginUser(String email, String password) {
+    public Map<String, String> loginUser(String email, String password) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
-            String alias = user.get().getAlias();
+            // Generate JWT token
             String token = generateJwtToken(user.get());
-            return token + "," + alias; // Return both token and alias
+            // Fetch the user's alias
+            String alias = user.get().getAlias();
+
+            // Return token and alias in a structured way
+            return Map.of("token", token, "userAlias", alias);
         } else {
             throw new IllegalArgumentException("Invalid email or password");
         }
@@ -60,7 +65,7 @@ public class AuthService {
     // Generate JWT token for the logged-in user
     private String generateJwtToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getId())
+                .setSubject(user.getId().toString())  // Ensure that the subject is a string (user ID)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .claim("email", user.getEmail())
