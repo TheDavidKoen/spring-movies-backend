@@ -34,6 +34,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll() // Allow auth endpoints
                         .requestMatchers("/api/v1/movies/**").permitAll() // Allow movie-related endpoints
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll() // Swagger Endpoints
                         .requestMatchers("/api/v1/reviews/**").authenticated() // Require authentication for reviews
                         .anyRequest().authenticated() // Protect all other endpoints
                 )
